@@ -3,6 +3,7 @@ import numpy as np
 import os
 import time
 import csv
+import shutil
 
 def estimate_pose(kpts0, kpts1, K0, K1, thresh=0.5, conf=0.99999):
     if len(kpts0) < 5:
@@ -41,29 +42,18 @@ def get_image_list(left_base_path, min_idx, max_idx):
 
     return image_list
 
-if __name__ == '__main__':
+def evaluate_orb(trajectory_name, image_list, K0, K1):
     results_data = [ 
         ["idx0", "idx1", "exec_time_ms", "kpts0_count", "kpts1_count", "inliers_count"]
     ]
 
-    #camera intrinsics
-    #see: https://github.com/castacks/tartanair_tools/blob/master/data_type.md
-    fx = 320.0
-    fy = 320.0
-    cx = 320.0
-    cy = 240.0
-    K0 = [[fx, 0.0, cx], [0.0, fy, cy], [0.0, 0.0, 1.0]]
-    K0 = np.array(K0, dtype="float32")
-    K1 = K0
-
     #create ORB detector
+    method_name = "orb"
     max_features = 5000
     orb = cv2.ORB_create(max_features)
 
-    #load images
-    image_list = get_image_list("/home/renato/workspace/Datasets/TartanAir/seasidetown_sample_P003/P003/image_left", 0, 334)
-
-    #process first image in a set against the others
+    #process first image in a set against the others in the set
+    print(f"***** Evaluating {method_name} in trajectory {trajectory_name} *****")
     set_len = 10
     for idx0 in range(0, len(image_list) - set_len, set_len):
         print(f"Processing set {idx0:03}-{idx0+set_len:03}")
@@ -112,7 +102,7 @@ if __name__ == '__main__':
                     if is_match:
                         filtered_orb_matches.append(orb_matches[i])
 
-                folder_path = f"results/{idx0:03}-{idx0+set_len:03}"
+                folder_path = f"results/{trajectory_name}/{method_name}/{idx0:03}-{idx0+set_len:03}"
                 os.makedirs(folder_path, exist_ok=True)
                 os.makedirs(f'{folder_path}/unfiltered', exist_ok=True)        
                 os.makedirs(f'{folder_path}/filtered', exist_ok=True)        
@@ -125,9 +115,34 @@ if __name__ == '__main__':
 
                 results_data.append([idx0, idx1, exec_time_ms, len(kpts0), len(kpts1), inliers_count])     
 
-    with open('results_log.csv', 'w', newline='') as csvfile:
+    with open(f"results/{trajectory_name}/{method_name}/{method_name}_results_log.csv", 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
 
         # Write each row to the CSV file
         for row in results_data:
             writer.writerow(row)
+
+
+def process_image_list(trajectory_name, image_list):
+    #camera intrinsics
+    #see: https://github.com/castacks/tartanair_tools/blob/master/data_type.md
+    fx = 320.0
+    fy = 320.0
+    cx = 320.0
+    cy = 240.0
+    K0 = [[fx, 0.0, cx], [0.0, fy, cy], [0.0, 0.0, 1.0]]
+    K0 = np.array(K0, dtype="float32")
+    K1 = K0
+
+    evaluate_orb(trajectory_name, image_list, K0, K1)
+
+if __name__ == '__main__':
+
+    #load images
+    image_list_seasidetown = get_image_list("/home/renato/workspace/Datasets/TartanAir/seasidetown_sample_P003/P003/image_left", 0, 334)
+    image_list_carwelding = get_image_list("/home/renato/workspace/Datasets/TartanAir/carwelding_sample_P007/P007/image_left", 0, 356)
+
+    shutil.rmtree("results")
+
+    process_image_list("seasidetown", image_list_seasidetown)
+    process_image_list("carwelding", image_list_carwelding)
