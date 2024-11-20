@@ -1,0 +1,13 @@
+.vscode/
+__pycache__/
+*.pyc
+*.DS_Store
+*.swp
+*.pth
+tmp.*
+*/.ipynb_checkpoints/*
+*log.csv
+logs/
+weights/
+dump/
+results/
