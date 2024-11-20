@@ -1,0 +1,11 @@
+name: detector_comparison
+channels:
+  - pytorch
+  - nvidia
+dependencies:
+  - python=3.8
+  - cudatoolkit=11.3
+  - pytorch=1.12.1
+  - pip
+  - pip:
+      - -r requirements.txt
