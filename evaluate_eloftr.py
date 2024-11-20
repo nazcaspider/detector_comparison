@@ -77,9 +77,33 @@ def evaluate_eloftr(trajectory_name, image_list, K0, K1):
                 end_time = time.perf_counter()
                 exec_time_ms = (end_time - start_time) * 1000 
                 
-                kpts0 = batch['mkpts0_f'].cpu().numpy()
-                kpts1 = batch['mkpts1_f'].cpu().numpy()
+                matched_kpts0 = batch['mkpts0_f'].cpu().numpy()
+                matched_kpts1 = batch['mkpts1_f'].cpu().numpy()
                 conf = batch['mconf'].cpu().numpy()
+
+            #estimate pose between two images with matching kp, up to scale and filter
+            ret = estimate_pose(matched_kpts0, matched_kpts1, K0, K1)
+            if ret is None:
+                continue
+            else:
+                R, t, inliers = ret
+                inliers_count = np.count_nonzero(inliers)
+
+
+            #filter matches to those supporting estimated pose
+            filtered_matched_kpts0 = []
+            filtered_matched_kpts1 = []
+            filtered_conf = []
+            for i in range(len(inliers)):
+                is_match = inliers[i]
+                if is_match:
+                    filtered_matched_kpts0.append(matched_kpts0[i])
+                    filtered_matched_kpts1.append(matched_kpts1[i])  
+                    filtered_conf.append(conf[i])  
+
+            filtered_matched_kpts0 = np.array(filtered_matched_kpts0)
+            filtered_matched_kpts1 = np.array(filtered_matched_kpts1)
+            filtered_conf = np.array(filtered_conf)
 
             #Output results
             folder_path = f"results/{trajectory_name}/{method_name}/{idx0:03}-{idx0+set_len:03}"
@@ -92,16 +116,26 @@ def evaluate_eloftr(trajectory_name, image_list, K0, K1):
                 conf = (conf - min(20.0, conf.min())) / (max(30.0, conf.max()) - min(20.0, conf.min()))
 
             color = cm.jet(conf)
-            text = [
+            filtered_color = cm.jet(filtered_conf)
+
+            unfiltered_text = [
                 'LoFTR',
-                'Matches: {}'.format(len(kpts0)),
+                'Unfiltered Matches: {}'.format(len(matched_kpts0)),
+            ]
+
+            filtered_text = [
+                'LoFTR',
+                'Filtered Matches: {}'.format(len(filtered_matched_kpts0)),
             ]
 
             unfiltered_img_path = f"{folder_path}/unfiltered/{idx0:03}-{idx1:03}.png"
-            make_matching_figure(img0_raw, img1_raw, kpts0, kpts1, color, text=text, path=unfiltered_img_path)
+            make_matching_figure(img0_raw, img1_raw, matched_kpts0, matched_kpts1, color, text=unfiltered_text, path=unfiltered_img_path)
+
+            filtered_img_path = f"{folder_path}/filtered/{idx0:03}-{idx1:03}.png"
+            make_matching_figure(img0_raw, img1_raw, filtered_matched_kpts0, filtered_matched_kpts1, filtered_color, text=filtered_text, path=filtered_img_path)
 
             #Append results
-            results_data.append([idx0, idx1, exec_time_ms, len(kpts0), len(kpts1), 0])     
+            results_data.append([idx0, idx1, exec_time_ms, len(matched_kpts0), len(matched_kpts1), len(filtered_matched_kpts0)])     
 
     with open(f"results/{trajectory_name}/{method_name}/{method_name}_results_log.csv", 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)

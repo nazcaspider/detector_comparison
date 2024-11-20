@@ -17,7 +17,7 @@ def process_image_list(trajectory_name, image_list):
     K0 = np.array(K0, dtype="float32")
     K1 = K0
 
-    #evaluate_orb(trajectory_name, image_list, K0, K1)
+    evaluate_orb(trajectory_name, image_list, K0, K1)
     evaluate_eloftr(trajectory_name, image_list, K0, K1)
 
 if __name__ == '__main__':
