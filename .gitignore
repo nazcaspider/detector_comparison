@@ -9,5 +9,6 @@ tmp.*
 *log.csv
 logs/
 weights/
+datasets/
 dump/
 results/

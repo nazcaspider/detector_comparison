@@ -38,7 +38,8 @@ def evaluate_eloftr(trajectory_name, image_list, K0, K1):
         _default_cfg['half'] = True    
     
     matcher = LoFTR(config=_default_cfg)
-    matcher.load_state_dict(torch.load("/home/renato/workspace/EfficientLoFTR/weights/eloftr_outdoor.ckpt")['state_dict'])
+    model_pth = os.path.join(os.getcwd(), "weights/eloftr_outdoor.ckpt")
+    matcher.load_state_dict(torch.load(model_pth)['state_dict'])
     matcher = reparameter(matcher) # no reparameterization will lead to low performance
 
     if precision == 'fp16':

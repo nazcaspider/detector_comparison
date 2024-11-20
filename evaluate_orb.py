@@ -25,6 +25,9 @@ def evaluate_orb(trajectory_name, image_list, K0, K1):
             img0_pth = image_list[idx0]
             img1_pth = image_list[idx1]
 
+            img0_pth = os.path.join(os.getcwd(), img0_pth)
+            img1_pth = os.path.join(os.getcwd(), img1_pth)
+
             img0_raw = cv2.imread(img0_pth, cv2.IMREAD_GRAYSCALE)
             img1_raw = cv2.imread(img1_pth, cv2.IMREAD_GRAYSCALE)
 

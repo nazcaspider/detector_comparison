@@ -23,8 +23,8 @@ def process_image_list(trajectory_name, image_list):
 if __name__ == '__main__':
 
     #load images
-    image_list_seasidetown = get_image_list("/home/renato/workspace/Datasets/TartanAir/seasidetown_sample_P003/P003/image_left", 0, 334)
-    image_list_carwelding = get_image_list("/home/renato/workspace/Datasets/TartanAir/carwelding_sample_P007/P007/image_left", 0, 356)
+    image_list_seasidetown = get_image_list("datasets/tartanair/seasidetown_sample_P003/P003/image_left", 0, 334)
+    image_list_carwelding = get_image_list("datasets/tartanair/carwelding_sample_P007/P007/image_left", 0, 356)
 
     if os.path.exists("results"):
         shutil.rmtree("results")
